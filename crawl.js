@@ -1,49 +1,90 @@
 const { JSDOM } = require('jsdom')
 
-async function crawlPage(currentURL) {
-  console.log(`Crawling ${currentURL}`)
+async function crawlPage(baseURL, currentURL, pages) {
+  console.log(`Currently crawling ${currentURL}`)
+
+  const baseURLObj = new URL(baseURL)
+  const currentURLObj = new URL(currentURL)
+
+  if (currentURLObj.hostname !== baseURLObj.hostname) 
+    return pages
+
+  const normalizedCurrentURL = normalizeURL(currentURL)
+
+  // check if we have already crawled this page, if so increment the count to get the total
+  // number of this page has been crawled
+  if (pages[normalizedCurrentURL] > 0) {
+    pages[normalizedCurrentURL] += 1
+
+    return pages
+  }
+
+  pages[normalizedCurrentURL] = 1
+
+  let htmlBody = ''
 
   try {
     const response = await fetch(currentURL)
 
     if (response.status > 399) {
       console.log(`Error in fetch with status code: ${response.status} on page ${currentURL}`)
-      return
+      return pages
     }
 
+    // check if the response is HTML, if not skip this page
     const contentType = response.headers.get('content-type')
     if (!contentType.includes("text/html")) {
       console.log(`Skipping ${currentURL} because it is not HTML`)
-      return
+      return pages
     }
+
+    htmlBody = await response.text()
+
   } catch (error) {
     console.log(`Error in fetch: ${error.message}`)
-    return
+    return pages
   }
+
+  const nextUrls = getURLsFromHTML(htmlBody, baseURL)
+    
+    for (const nextURL of nextUrls) {
+      pages = await crawlPage(baseURL, nextURL, pages)
+    }
+
+  return pages
 }
 
-function getURLsFromHTML(htmlBody, baseURL) {
+
+function getURLsFromHTML(htmlBody, baseURL){
   const urls = []
   const dom = new JSDOM(htmlBody)
-  const links = dom.window.document.querySelectorAll('a')
+  const aElements = dom.window.document.querySelectorAll('a')
 
-  links.forEach(link => {
-    if (link.href.slice(0, 1) === '/') {
-      urls.push(baseURL + link.href)
+  for (const aElement of aElements){
+    if (aElement.href.slice(0,1) === '/'){
+      try {
+        urls.push(new URL(aElement.href, baseURL).href)
+      } catch (err){
+        console.log(`${err.message}: ${aElement.href}`)
+      }
     } else {
-      urls.push(link.href)
+      try {
+        urls.push(new URL(aElement.href).href)
+      } catch (err){
+        console.log(`${err.message}: ${aElement.href}`)
+      }
     }
-  })
-
+  }
   return urls
 }
+
 
 function normalizeURL(url) {
   // create a URL object from the url string
   const urlObj = new URL(url)
   
   // remove the protocol from the url
-  const hostPath = `${urlObj.hostname}${urlObj.pathname}`
+  let hostPath = `${urlObj.host}${urlObj.pathname}`
 
   // remove trailing slash if present otherwise return the hostPath
   if (hostPath.length > 0 && hostPath.slice(-1) === '/') {

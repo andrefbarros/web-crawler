@@ -29,48 +29,48 @@ test('normalizeURL capitals in url', () => {
 
 /* getURLsFromHTML tests */
 test('getURLsFromHTML returns URL in html body', () => {
-  const inputHTMLBody = '<html><body><a href="www.example.com">Example</a></body></html>'
-  const inputBaseURL = 'www.example.com'
+  const inputHTMLBody = '<html><body><a href="https://www.example.com">Example</a></body></html>'
+  const inputBaseURL = 'https://www.example.com'
   const actual = getURLsFromHTML(inputHTMLBody, inputBaseURL)
-  const expected = ["www.example.com"]
+  const expected = ["https://www.example.com/"]
 
   expect(actual).toEqual(expected)
 })
 
 test('getURLsFromHTML returns empty array if no urls in html body', () => {
   const inputHTMLBody = '<html><body><a>Example</a></body></html>'
-  const inputBaseURL = 'www.example.com'
+  const inputBaseURL = 'https://www.example.com'
   const actual = getURLsFromHTML(inputHTMLBody, inputBaseURL)
-  const expected = ['']
+  const expected = [ ]
 
   expect(actual).toEqual(expected)
 })
 
 test('getURLsFromHTML returns URL from relative path', () => {
   const inputHTMLBody = '<html><body><a href="/path">Example</a></body></html>'
-  const inputBaseURL = 'www.example.com'
+  const inputBaseURL = 'https://www.example.com'
   const actual = getURLsFromHTML(inputHTMLBody, inputBaseURL)
-  const expected = ["www.example.com/path"]
+  const expected = ["https://www.example.com/path"]
 
   expect(actual).toEqual(expected)
 })
 
 test('getURLsFromHTML returns URLs', () => {
-  const inputHTMLBody = '<html><body><a href="/path">Example</a><a href="www.example.com">Example</a></body></html>'
-  const inputBaseURL = 'www.example.com'
+  const inputHTMLBody = '<html><body><a href="/path">Example</a><a href="https://www.example.dev">Example</a></body></html>'
+  const inputBaseURL = 'https://www.example.dev'
   const actual = getURLsFromHTML(inputHTMLBody, inputBaseURL)
-  const expected = ["www.example.com/path", "www.example.com"]
+  const expected = ["https://www.example.dev/path", "https://www.example.dev/"]
 
   expect(actual).toEqual(expected)
 })
 
-// test('getURLsFromHTML returns empty from invalid url', () => {
-//   const inputHTMLBody = '<html><body><a href="invalid">Example</a></body></html>'
-//   const inputBaseURL = 'www.example.com'
-//   const actual = getURLsFromHTML(inputHTMLBody, inputBaseURL)
-//   const expected = ['']
+test('getURLsFromHTML returns empty from invalid url', () => {
+  const inputHTMLBody = '<html><body><a href="invalid">Example</a></body></html>'
+  const inputBaseURL = 'https://www.example.com'
+  const actual = getURLsFromHTML(inputHTMLBody, inputBaseURL)
+  const expected = [ ]
 
-//   expect(actual).toEqual(expected)
-// })
+  expect(actual).toEqual(expected)
+})
 
 
