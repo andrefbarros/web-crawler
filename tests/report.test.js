@@ -1,5 +1,5 @@
 const { test, expect } = require('@jest/globals')
-const { sortPages } = require('./report')
+const { sortPages } = require('../src/report.js')
 
 test('sortPages sorts pages by page number', () => {
   const input = {
